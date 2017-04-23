@@ -86,3 +86,8 @@ $(document).ready(function() {
 });
   
 $('select').material_select('destroy');
+
+// Collapsible initializer
+$(document).ready(function(){
+	$('.collapsible').collapsible();
+});

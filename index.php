@@ -219,6 +219,45 @@
 		<br />
 		<p></p>
 
+		<table class="striped responsive-table" id="pastLoser">
+			<thead>
+				<tr>
+					<th data-field="title">Past Losers</th>
+					<th data-field="date">Date</th>
+					<th data-field="name">Name</th>
+					<th data-field="ratio">Percentage</th>
+				</tr>
+			</thead>	
+
+			<tbody>	
+				<!-- Grab all records -->
+				<?php
+				//Debugging code
+				//ini_set('display_errors', 1);
+				//error_reporting(E_ALL);
+				
+					$sql = "SELECT * FROM DurakPastWeek"; //week, loser, percentage
+					$result = $conn->query($sql);
+					
+					if ($result->num_rows > 0) {
+						// output data of each row
+						while($row = $result->fetch_assoc()) {
+							echo "<tr><td></td>";
+							echo "<td>". $row["week"]."</td>";
+							echo "<td>" . $row["loser"]. "</td>";
+							echo "<td>" . $row["percentage"]. "</td></tr>";
+						}
+					} 
+					else {
+						echo "<tr>";
+						echo "<td>0 results</td>";
+						echo "</tr>";
+					}
+				?>
+			</tbody>
+		</table>
+		
+		
 		<script>
 		// Only used if implementing with an account
 		function deleteSession(){
