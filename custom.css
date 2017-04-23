@@ -1,0 +1,22 @@
+/* Placeholder color for 4 different browsers */
+::-webkit-input-placeholder { /* Chrome/Opera/Safari */
+	color: black;
+}
+::-moz-placeholder { /* Firefox 19+ */
+	color: black;
+}
+:-ms-input-placeholder { /* IE 10+ */
+	color: black;
+}
+:-moz-placeholder { /* Firefox 18- */
+	color: black;
+}
+
+/* Put toast message in the middle */
+#toast-container {
+  top: 10%;
+  right: auto !important;
+  bottom: auto !important;
+  left:43%;  
+}
+
