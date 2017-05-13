@@ -53,6 +53,7 @@
 			line-height: 150px;
 		}
 		</style>
+		
 		<!--Let browser know website is optimized for mobile-->
 		<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 		<title>Durak</title>
@@ -74,190 +75,293 @@
 			</div>
 		</nav>
 		
-		<form action='updateTable.php' name='updateTable' method='post'>
-		<table class="striped responsive-table" id="mainTable">
-			<thead>
-				<tr>
-					<th></th>
-					<th data-field="playing">All Playing? &nbsp &nbsp <input type='checkbox' onClick="toggle(this)" id="check"/><label for="check"></label></th>
-					<th data-field="loser">Who Lost?</th>
-					<th data-field="name">Name</th>
-					<th data-field="losses">Total Losses</th>
-					<th data-field="rounds">Total Rounds</th>
-					<th data-field="ratio">Calculated Ratio</th>
-				</tr>
-			</thead>	
+		<br />
+		<br />
+		
+		<!-- Sort everything into tabs because page is getting damn long --> 
+		<div class="row">
+			<div class="col s12">
+			  <ul class="tabs">
+				<li class="tab col s3"><a class="active" href="#currWeek">Current Week</a></li>
+				<li class="tab col s3"><a href="#pastDurak">Past Durak</a></li>
+				<li class="tab col s3"><a href="#totalDurak">Total Durak</a></li>
+				<li class="tab col s3"><a href="#theoStats">Theoretical Stats</a></li>
+			  </ul>
+			</div>
+			
+			<!-- Main table which shows current stats for that week -->
+			<div id="currWeek" class="col s12">
+				<form action='updateTable.php' name='updateTable' method='post'>
+				<table class="striped responsive-table" id="mainTable">
+					<thead>
+						<tr>
+							<th></th>
+							<th data-field="playing">All Playing? &nbsp &nbsp <input type='checkbox' onClick="toggle(this)" id="check"/><label for="check"></label></th>
+							<th data-field="loser">Who Lost?</th>
+							<th data-field="name">Name</th>
+							<th data-field="losses">Total Losses</th>
+							<th data-field="rounds">Total Rounds</th>
+							<th data-field="ratio">Calculated Ratio</th>
+						</tr>
+					</thead>	
 
-			<tbody>	
-				<!-- Grab all records -->
-				<?php
-				//Debugging code
-				//ini_set('display_errors', 1);
-				//error_reporting(E_ALL);
+					<tbody>	
+						<!-- Grab all records -->
+						<?php
+							$sql = "SELECT * FROM Durak"; //name, numLosses, numRounds
+							$result = $conn->query($sql);
+							
+							if ($result->num_rows > 0) {
+								// output data of each row
+								while($row = $result->fetch_assoc()) {
+									echo "<tr><td></td>";
+									echo "<td><input type='checkbox' name='currPlayers[]' value='". $row["name"]."' id='". $row["name"]."'/><label for='". $row["name"]."'></label></td>";
+									echo "<td><input name='daLoser' type='radio' id='". $row["name"]."rd' value='". $row["name"]."'/><label for='". $row["name"]."rd'></label> </td>";
+									echo "<td>" . $row["name"]. "<input type='hidden' name='playerName' value='". $row["name"]."' /></td>";
+									echo "<td>" . $row["numLosses"]. "<input type='hidden' name='totalLosses' value='". $row["numLosses"]."' /></td>";
+									echo "<td>" . $row["numRounds"]. "<input type='hidden' name='totalRounds' value='". $row["numRounds"]."' /></td>";
+									$percent = $row["numLosses"]/$row["numRounds"];
+									$percent_friendly = number_format( $percent * 100, 2 ) . '%';
+									echo "<td>" . $percent_friendly. "<input type='hidden' name='calcRatio' value='". $percent_friendly."' /></td></tr>";
+								}
+							} 
+							else {
+								echo "<form><tr>";
+								echo "<td>0 results</td>";
+								echo "</tr></form>";
+							}
+						?>
+					</tbody>
+				</table>
+				<button class='btn waves-effect waves-light' style="left: 1%;" type='submit' name='add'><i class='material-icons'>send</i></button> &nbsp &nbsp &nbsp &nbsp <span class="orange-text text-accent-4">Add a loser</span>
+				<br />
+				<p></p>
+				</form>
 				
-					$sql = "SELECT * FROM Durak"; //name, numLosses, numRounds
-					$result = $conn->query($sql);
-					
-					if ($result->num_rows > 0) {
-						// output data of each row
-						while($row = $result->fetch_assoc()) {
-							//echo "<td> <button class='waves-effect waves-red btn-flat' type='submit' name='deleteBool' value='deleteTrue'><i class='material-icons right'>delete</i></button></td>";
-							echo "<tr><td></td>";
-							echo "<td><input type='checkbox' name='currPlayers[]' value='". $row["name"]."' id='". $row["name"]."'/><label for='". $row["name"]."'></label></td>";
-							echo "<td><input name='daLoser' type='radio' id='". $row["name"]."rd' value='". $row["name"]."'/><label for='". $row["name"]."rd'></label> </td>";
-							echo "<td>" . $row["name"]. "<input type='hidden' name='playerName' value='". $row["name"]."' /></td>";
-							echo "<td>" . $row["numLosses"]. "<input type='hidden' name='totalLosses' value='". $row["numLosses"]."' /></td>";
-							echo "<td>" . $row["numRounds"]. "<input type='hidden' name='totalRounds' value='". $row["numRounds"]."' /></td>";
-							$percent = $row["numLosses"]/$row["numRounds"];
-							$percent_friendly = number_format( $percent * 100, 2 ) . '%';
-							echo "<td>" . $percent_friendly. "<input type='hidden' name='calcRatio' value='". $percent_friendly."' /></td></tr>";
-						}
-					} 
-					else {
-						echo "<form><tr>";
-						echo "<td>0 results</td>";
-						echo "</tr></form>";
-					}
-					//$conn->close();
-				?>
-			</tbody>
-		</table>
-		<button class='btn waves-effect waves-light' style="left: 1%;" type='submit' name='add'><i class='material-icons'>send</i></button> &nbsp &nbsp &nbsp &nbsp Add a loser
-		<br />
-		<p></p>
-		</form>
-		
-		<!-- At end of week, start a new round (purge table), but keep history of that week -->
-		<div id='hideDivEndOfWeek' style='display:none;' class="center-align">
-			<form action='updateTable.php' name='deleteTable' method='post'>
-				<tr>
-					<td>
-						<div style='display:inline;' class='col s1'>
-							<div class='input-field inline'>
-								<select name='daLoser'>
-									<option value="" disabled selected>Name</option>
-									<?php 
-										$sql = "SELECT name FROM Durak";
-										$result = $conn->query($sql);
-										if ($result->num_rows > 0) {
-											while($row = $result->fetch_assoc()) {									
-												echo "<option value='" . $row['name'] . "'>" . $row['name'] . "</option>";
-											}
-										}
-										else {
-											echo "<option value='noPlayer'> No Players Detected </option>";
-										}
-										//$conn->close();									
-									?>
-								</select>
-							</div>
-						</div>
-					</td>
-					<td>
-						<div style='display:inline;' class='col s1'>
-							<div class='input-field inline'>
-								<input name='percentage' type='text' placeholder='Percent'>
-							</div>
-						</div>
-					</td>
-					<td>
-						<div style='display:inline;'>
-							<button class='btn waves-effect waves-light' type='submit' name='clear'>
-								Start new round
-								<i class='material-icons right'>
-									send
-								</i>
-							</button>
-						</div>
-					</td>
-				</tr>
-			</form>
-		</div>
-		<button class="btn waves-effect waves-light" style="left: 1%;" onclick="showHiddenDivEndOfWeek()"><i class="material-icons">loop</i></button> &nbsp &nbsp &nbsp &nbsp End of week
-		
-		<br />
-		<!-- Adding new player -->
-		<div id='hideDiv' style='display:none;' class="center-align">
-			<form action='insertTable.php' name='insertTable' method='post'>
-				<tr>
-					<td>
-						<div style='display:inline;' class='col s1'>
-							<div class='input-field inline'>
-								<input name='playerName' type='text' placeholder='Name'>
-							</div>
-						</div>
-					</td>
-					<td>
-						<div style='display:inline;' class='col s1'>
-							<div class='input-field inline'>
-								<input name='totalLosses' type='text' placeholder='Losses'>
-							</div>
-						</div>
-					</td>
-					<td>
-						<div style='display:inline;' class='col s1'>
-							<div class='input-field inline'>
-								<input name='totalRounds' type='text' placeholder='Rounds'>
-							</div>
-						</div>
-					</td>
-					<td>
-						<div style='display:inline;'>
-							<button class='btn waves-effect waves-light' type='submit' name='action'>
-								New
-								<i class='material-icons right'>
-									send
-								</i>
-							</button>
-						</div>
-					</td>
-				</tr>
-			</form>
-		</div>
-		<br />
-		<button class="btn waves-effect waves-light" style="left: 1%;" onclick="showHiddenDiv()"><i class="material-icons">add</i></button> &nbsp &nbsp &nbsp &nbsp Add a new player
-		<br />
-		<p></p>
-
-		<table class="striped responsive-table" id="pastLoser">
-			<thead>
-				<tr>
-					<th data-field="title">Past Losers</th>
-					<th data-field="date">Date</th>
-					<th data-field="name">Name</th>
-					<th data-field="ratio">Percentage</th>
-				</tr>
-			</thead>	
-
-			<tbody>	
-				<!-- Grab all records -->
-				<?php
-				//Debugging code
-				//ini_set('display_errors', 1);
-				//error_reporting(E_ALL);
+				<!-- Following forms are hidden until buttons are pressed -->
+				<!-- At end of week, start a new round (purge table), but keep history of that week -->
+				<div id='hideDivEndOfWeek' style='display:none;' class="center-align">
+					<form action='updateTable.php' name='deleteTable' method='post'>
+						<tr>
+							<td>
+								<div style='display:inline;' class='col s1'>
+									<div class='input-field inline'>
+										<select name='daLoser'>
+											<option value="" disabled selected>Name</option>
+											<?php 
+												$sql = "SELECT name FROM Durak";
+												$result = $conn->query($sql);
+												if ($result->num_rows > 0) {
+													while($row = $result->fetch_assoc()) {									
+														echo "<option value='" . $row['name'] . "'>" . $row['name'] . "</option>";
+													}
+												}
+												else {
+													echo "<option value='noPlayer'> No Players Detected </option>";
+												}									
+											?>
+										</select>
+									</div>
+								</div>
+							</td>
+							<td>
+								<div style='display:inline;' class='col s1'>
+									<div class='input-field inline'>
+										<input name='percentage' type='text' placeholder='Percent'>
+									</div>
+								</div>
+							</td>
+							<td>
+								<div style='display:inline;'>
+									<button class='btn waves-effect waves-light' type='submit' name='clear'>
+										Start new round
+										<i class='material-icons right'>
+											send
+										</i>
+									</button>
+								</div>
+							</td>
+						</tr>
+					</form>
+				</div>
+				<button class="btn waves-effect waves-light" style="left: 1%;" onclick="showHiddenDivEndOfWeek()"><i class="material-icons">loop</i></button> &nbsp &nbsp &nbsp &nbsp <span class="orange-text text-accent-4">End of week</span>
 				
-					$sql = "SELECT * FROM DurakPastWeek"; //week, loser, percentage
-					$result = $conn->query($sql);
-					
-					if ($result->num_rows > 0) {
-						// output data of each row
-						while($row = $result->fetch_assoc()) {
-							echo "<tr><td></td>";
-							echo "<td>". $row["week"]."</td>";
-							echo "<td>" . $row["loser"]. "</td>";
-							echo "<td>" . $row["percentage"]. "</td></tr>";
-						}
-					} 
-					else {
-						echo "<tr>";
-						echo "<td>0 results</td>";
-						echo "</tr>";
-					}
-				?>
-			</tbody>
-		</table>
-		
-		
+				<br />
+				
+				<!-- Adding new player -->
+				<div id='hideDiv' style='display:none;' class="center-align">
+					<form action='insertTable.php' name='insertTable' method='post'>
+						<tr>
+							<td>
+								<div style='display:inline;' class='col s1'>
+									<div class='input-field inline'>
+										<input name='playerName' type='text' placeholder='Name'>
+									</div>
+								</div>
+							</td>
+							<td>
+								<div style='display:inline;' class='col s1'>
+									<div class='input-field inline'>
+										<input name='totalLosses' type='text' placeholder='Losses'>
+									</div>
+								</div>
+							</td>
+							<td>
+								<div style='display:inline;' class='col s1'>
+									<div class='input-field inline'>
+										<input name='totalRounds' type='text' placeholder='Rounds'>
+									</div>
+								</div>
+							</td>
+							<td>
+								<div style='display:inline;'>
+									<button class='btn waves-effect waves-light' type='submit' name='action'>
+										New
+										<i class='material-icons right'>
+											send
+										</i>
+									</button>
+								</div>
+							</td>
+						</tr>
+					</form>
+				</div>
+				<br />
+				<button class="btn waves-effect waves-light" style="left: 1%;" onclick="showHiddenDiv()"><i class="material-icons">add</i></button> &nbsp &nbsp &nbsp &nbsp <span class="orange-text text-accent-4">Add a new player</span>
+			</div>
+			
+			<!-- Show who lost the previous weeks -->
+			<div id="pastDurak" class="col s12">
+				<table class="striped responsive-table" id="pastLoser">
+					<thead>
+						<tr>
+							<th data-field="title"><span class="orange-text text-accent-4">Past Losers</span></th>
+							<th data-field="date">Date</th>
+							<th data-field="name">Name</th>
+							<th data-field="ratio">Percentage</th>
+						</tr>
+					</thead>	
+
+					<tbody>	
+						<!-- Grab all records -->
+						<?php
+							$sql = "SELECT * FROM DurakPastWeek"; //week, loser, percentage
+							$result = $conn->query($sql);
+							
+							if ($result->num_rows > 0) {
+								// output data of each row
+								while($row = $result->fetch_assoc()) {
+									echo "<tr><td></td>";
+									echo "<td>". $row["week"]."</td>";
+									echo "<td>" . $row["loser"]. "</td>";
+									echo "<td>" . $row["percentage"]. "</td></tr>";
+								}
+							} 
+							else {
+								echo "<tr>";
+								echo "<td>0 results</td>";
+								echo "</tr>";
+							}
+						?>
+					</tbody>
+				</table>
+			</div>
+			
+			<!-- Show all history of stats -->
+			<div id="totalDurak" class="col s12">
+				<table class="striped responsive-table" id="fullHistory">
+					<thead>
+						<tr>
+							<th data-field="title"><span class="orange-text text-accent-4">Total History</span></th>
+							<th data-field="name">Name</th>
+							<th data-field="numLosses">Total Losses</th>
+							<th data-field="numRounds">Total Rounds</th>
+							<th data-field="ratio">Ratio</th>
+						</tr>
+					</thead>	
+
+					<tbody>	
+						<!-- Grab all records -->
+						<?php
+							$sql = "SELECT * FROM DurakFullHistory"; //week, loser, percentage
+							$result = $conn->query($sql);
+							
+							if ($result->num_rows > 0) {
+								// output data of each row
+								while($row = $result->fetch_assoc()) {
+									echo "<tr><td></td>";
+									echo "<td>" . $row["name"]. "</td>";
+									echo "<td>" . $row["numLosses"]. "</td>";
+									echo "<td>" . $row["numRounds"]. "</td>";
+									$percent = $row["numLosses"]/$row["numRounds"];
+									$percent_friendly = number_format( $percent * 100, 2 ) . '%';
+									echo "<td>" . $percent_friendly. "<input type='hidden' name='calcRatio' value='". $percent_friendly."' /></td></tr>";
+								}
+							} 
+							else {
+								echo "<tr>";
+								echo "<td>0 results</td>";
+								echo "</tr>";
+							}
+						?>
+					</tbody>
+				</table>
+			</div>
+			
+			<!-- Theoretical Calculator - Will find ratio "if" chosen person loses -->
+			<div id="theoStats" class="col s12">
+				<table class="striped responsive-table" id="theoreticalCalc">
+					<thead>
+						<tr>
+							<th data-field="title"><span class="orange-text text-accent-4">Theoretical Stats</span></th>
+							<th data-field="lost">Who "Lost"?</th>
+							<th data-field="name">Name</th>
+							<th data-field="numLosses">Losses</th>
+							<th data-field="numRounds">Rounds</th>
+							<th data-field="ratio">Ratio</th>
+						</tr>
+					</thead>	
+
+					<tbody>	
+						<!-- Grab all records -->
+						<?php						
+							$sql = "SELECT * FROM Durak"; //name, numLosses, numRounds
+							$result = $conn->query($sql);
+							
+							if ($result->num_rows > 0) {
+								// output data of each row
+								while($row = $result->fetch_assoc()) {
+									echo "<tr><td></td>";
+									echo "<td><input class='updateTheo' name='theoLoser' type='radio' id='". $row["name"]."rdt' value='". $row["name"]."'/><label for='". $row["name"]."rdt'></label> </td>";
+									if($num === 1) { 
+										echo 'checked'; 
+									}
+									
+									echo "<td>" . $row["name"]. "<input type='hidden' name='theoPlayerName' value='". $row["name"]."' /></td>";
+									
+									$theoLoses = $row["numLosses"];
+									echo "<td>" . $theoLoses. "<input type='hidden' name='theoLosses' value='". $row["numLosses"]."' /></td>";
+									
+									$theoRoundsVar = $row["numRounds"] + 1;
+									echo "<td>" . $theoRoundsVar. "<input type='hidden' name='theoRounds' value='". $row["numRounds"]."' /></td>";
+									
+									
+									$percent = $row["numLosses"]/$theoRoundsVar;
+									$percent_friendly = number_format( $percent * 100, 2 ) . '%';
+									echo "<td>" . $percent_friendly. "<input type='hidden' name='theoRatio' value='". $percent_friendly."' /></td></tr>";
+								}
+							} 
+							else {
+								echo "<form><tr>";
+								echo "<td>0 results</td>";
+								echo "</tr></form>";
+							}
+						?>
+					</tbody>
+				</table>			
+			</div>
+		</div>
+
 		<script>
 		// Only used if implementing with an account
 		function deleteSession(){
