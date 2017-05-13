@@ -144,7 +144,7 @@
 					<form action='updateTable.php' name='deleteTable' method='post'>
 						<tr>
 							<td>
-								<div style='display:inline;' class='col s1'>
+								<div style='display:inline;' class='col s3'>
 									<div class='input-field inline'>
 										<select name='daLoser'>
 											<option value="" disabled selected>Name</option>
@@ -165,7 +165,7 @@
 								</div>
 							</td>
 							<td>
-								<div style='display:inline;' class='col s1'>
+								<div style='display:inline;' class='col s3'>
 									<div class='input-field inline'>
 										<input name='percentage' type='text' placeholder='Percent'>
 									</div>
@@ -193,28 +193,34 @@
 					<form action='insertTable.php' name='insertTable' method='post'>
 						<tr>
 							<td>
-								<div style='display:inline;' class='col s1'>
+								<div class='col s3'> 
 									<div class='input-field inline'>
 										<input name='playerName' type='text' placeholder='Name'>
 									</div>
 								</div>
 							</td>
+						</tr>
+						<tr>
 							<td>
-								<div style='display:inline;' class='col s1'>
+								<div class='col s3'>
 									<div class='input-field inline'>
 										<input name='totalLosses' type='text' placeholder='Losses'>
 									</div>
 								</div>
 							</td>
+						</tr>
+						<tr>
 							<td>
-								<div style='display:inline;' class='col s1'>
+								<div class='col s3'>
 									<div class='input-field inline'>
 										<input name='totalRounds' type='text' placeholder='Rounds'>
 									</div>
 								</div>
 							</td>
+						</tr>
+						<tr>
 							<td>
-								<div style='display:inline;'>
+								<div>
 									<button class='btn waves-effect waves-light' type='submit' name='action'>
 										New
 										<i class='material-icons right'>
@@ -314,7 +320,6 @@
 					<thead>
 						<tr>
 							<th data-field="title"><span class="orange-text text-accent-4">Theoretical Stats</span></th>
-							<th data-field="lost">Who "Lost"?</th>
 							<th data-field="name">Name</th>
 							<th data-field="numLosses">Losses</th>
 							<th data-field="numRounds">Rounds</th>
@@ -332,23 +337,36 @@
 								// output data of each row
 								while($row = $result->fetch_assoc()) {
 									echo "<tr><td></td>";
-									echo "<td><input class='updateTheo' name='theoLoser' type='radio' id='". $row["name"]."rdt' value='". $row["name"]."'/><label for='". $row["name"]."rdt'></label> </td>";
-									if($num === 1) { 
-										echo 'checked'; 
-									}
 									
-									echo "<td>" . $row["name"]. "<input type='hidden' name='theoPlayerName' value='". $row["name"]."' /></td>";
+									echo "<td>" . $row["name"]. "<input type='hidden' name='theoPlayerName' value='". $row["name"]."' onChange='updateScore()' /></td>";
 									
 									$theoLoses = $row["numLosses"];
-									echo "<td>" . $theoLoses. "<input type='hidden' name='theoLosses' value='". $row["numLosses"]."' /></td>";
+									echo "<td><input type='number' id='". $row["name"]."loss' name='theoLosses' value='". $theoLoses."' /></td>";
 									
-									$theoRoundsVar = $row["numRounds"] + 1;
-									echo "<td>" . $theoRoundsVar. "<input type='hidden' name='theoRounds' value='". $row["numRounds"]."' /></td>";
-									
+									$theoRoundsVar = $row["numRounds"];
+									echo "<td><input type='number' id='". $row["name"]."round' name='theoRounds' value='". $theoRoundsVar."' /></td></td>";
 									
 									$percent = $row["numLosses"]/$theoRoundsVar;
 									$percent_friendly = number_format( $percent * 100, 2 ) . '%';
-									echo "<td>" . $percent_friendly. "<input type='hidden' name='theoRatio' value='". $percent_friendly."' /></td></tr>";
+									echo "<td><input disabled type='text' id='". $row["name"]."ratio' name='theoRatio' class='black-text' value='". $percent_friendly."' /></td></tr>";
+									
+									echo	
+										"<script>
+											$('#". $row["name"]."loss').change(function(){
+												var loss_var = Number($(this).val());
+												var round_var = Number($('#". $row["name"]."round').val())
+												var total = (loss_var / round_var);
+												$('#". $row["name"]."ratio').val(total);
+											});
+
+											$('#". $row["name"]."round').change(function(){
+												
+												var round_var = Number($(this).val());
+												var loss_var = Number($('#". $row["name"]."loss').val())
+												var total = (loss_var / round_var);
+												$('#". $row["name"]."ratio').val(total);
+											});
+										</script>";
 								}
 							} 
 							else {
@@ -372,6 +390,22 @@
 				session_destroy(); 
 			?>
 		}
+		/*
+		$("#lossId").change(function(){
+			
+			var loss_var = Number($(this).val());
+			var round_var = Number($("#roundId").val())
+			var total = (loss_var / round_var);
+			$("#ratioId").val(total);
+		});
+
+		$("#roundId").change(function(){
+			
+			var round_var = Number($(this).val());
+			var loss_var = Number($("#lossId").val())
+			var total = (loss_var / round_var);
+			$("#ratioId").val(total);
+		});*/
 		</script>
 		
 		<!--Import jQuery before materialize.js-->
@@ -382,4 +416,12 @@
 			$conn->close();	
 		?>
 	</body>
+	
+	<footer class="page-footer blue darken-2">
+		<div class="footer-copyright">
+            <div class="container center-align">
+            © <?php echo date("Y"); ?> Copyright - Lalo Web Design
+            </div>
+		</div>
+	</footer>
 </html>

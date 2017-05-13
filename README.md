@@ -11,5 +11,5 @@ Some of the features requested:
 * Keep history of all games played
 * Display who lost last week (so the people absent can see)
 * Display full history for stats
-* Theoretical calculator so that people will know what's at stake (in progress...)
+* Theoretical calculator so that people will know what's at stake
 * "Deviate" full history scores to see how people compare as if they have been playing all the time (in progress...)
